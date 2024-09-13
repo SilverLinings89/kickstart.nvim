@@ -88,7 +88,7 @@ P.S. You can delete this when you're done too. It's your config now! :)
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
-
+vim.opt.conceallevel = 1
 -- Set to true if you have a Nerd Font installed
 vim.g.have_nerd_font = true
 
@@ -175,17 +175,17 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 -- TIP: Disable arrow keys in normal mode
-vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
-vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
-vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
-vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
+-- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
+-- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
+-- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
+-- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
 --
 --  See `:help wincmd` for a list of all window commands
-vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
-vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
+vim.keymap.set('n', '<C-left>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<C-right>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
@@ -202,7 +202,40 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
+-- Function to check if a directory exists
+local function dir_exists(path)
+  local stat = vim.loop.fs_stat(path)
+  return stat and stat.type == 'directory'
+end
 
+-- Function to check directories in order and return the valid one
+local function get_valid_vault_path(vault_type)
+  -- Ensure the vault_type is either "personal" or "work"
+  if vault_type ~= 'personal' and vault_type ~= 'work' then
+    error('Invalid vault type: ' .. vault_type .. ". Expected 'personal' or 'work'.")
+  end
+
+  -- List of base directories to check (vault_type will be appended to these)
+  local base_paths = {
+    '/mnt/c/Users/p107t/vaults/',
+    '/mnt/c/Users/pasca/vaults/',
+    os.getenv 'HOME' .. '/vaults/',
+  }
+
+  -- Keep checking each base path combined with the vault type (e.g. "personal" or "work")
+  for _, base_path in ipairs(base_paths) do
+    local full_path = base_path .. vault_type
+    if dir_exists(full_path) then
+      return full_path -- Return the valid path
+    end
+  end
+
+  -- If no valid path is found, keep trying after a delay
+  vim.defer_fn(function()
+    print("No valid vault path found for '" .. vault_type .. "', retrying...")
+    get_valid_vault_path(vault_type) -- Retry after a delay
+  end, 1000) -- Delay of 1000ms (1 second)
+end
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -229,7 +262,28 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-  'epwalsh/obsidian.nvim',
+  {
+    'epwalsh/obsidian.nvim',
+    version = '*',
+    lazy = true,
+    ft = 'markdown',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+    },
+    opts = {
+      workspaces = {
+        {
+          name = 'personal',
+          path = get_valid_vault_path 'personal',
+        },
+        {
+          name = 'work',
+          path = get_valid_vault_path 'work',
+        },
+      },
+    },
+  },
+
   'oflisback/obsidian-bridge.nvim',
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -297,10 +351,10 @@ require('lazy').setup({
         harpoon:list():select(4)
       end)
       -- Toggle previous & next buffers stored within Harpoon list
-      vim.keymap.set('n', '<C-S-P>', function()
+      vim.keymap.set('n', '<C-up>', function()
         harpoon:list():prev()
       end)
-      vim.keymap.set('n', '<C-S-N>', function()
+      vim.keymap.set('n', '<C-down>', function()
         harpoon:list():next()
       end)
     end,
@@ -401,9 +455,6 @@ require('lazy').setup({
         end,
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
-
-      -- Useful for getting pretty icons, but requires a Nerd Font.
-      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -437,9 +488,22 @@ require('lazy').setup({
         --   },
         -- },
         -- pickers = {}
+        defaults = {
+          theme = 'center',
+          sorting_strategy = 'ascending',
+          layout_config = {
+            horizontal = {
+              prompt_position = 'top',
+              preview_width = 0.3,
+            },
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
+          },
+          file_browser = {
+            hijack_netrw = true,
           },
         },
       }
@@ -447,6 +511,7 @@ require('lazy').setup({
       -- Enable Telescope extensions if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      require('telescope').load_extension 'file_browser'
 
       -- See `:help telescope.builtin`
       local builtin = require 'telescope.builtin'
@@ -854,6 +919,7 @@ require('lazy').setup({
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
           ['<C-y>'] = cmp.mapping.confirm { select = true },
+          ['<Tab>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
@@ -1045,15 +1111,12 @@ require('lazy').setup({
     end,
   },
   {
-    'nvim-tree/nvim-tree.lua',
+    'nvim-telescope/telescope-file-browser.nvim',
     config = function()
-      vim.g.loaded_netrw = 1
-      vim.g.loaded_netrwPlugin = 1
-      vim.opt.termguicolors = true
-      require('nvim-tree').setup()
+      vim.keymap.set('n', '<space>fb', ':Telescope file_browser<CR>')
     end,
+    dependencies = { 'nvim-telescope/telescope.nvim', 'nvim-lua/plenary.nvim' },
   },
-
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
