@@ -243,7 +243,6 @@ require('lazy').setup({
   { 'numToStr/Comment.nvim', opts = {} },
   { 'folke/zen-mode.nvim', opts = {} },
   { 'folke/twilight.nvim', opts = {} },
-
   -- Here is a more advanced example where we pass configuration
   -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
   --    require('gitsigns').setup({ ... })
@@ -500,8 +499,7 @@ require('lazy').setup({
     },
   },
   { 'Bilal2453/luvit-meta', lazy = true },
-  {
-    -- Main LSP Configuration
+  -- Main LSP Configuration
   {
     'williamboman/mason.nvim',
     opts = {
@@ -674,7 +672,7 @@ require('lazy').setup({
         html = {},
         jsonls = {},
         marksman = {},
-        tsserver = {},
+        ts_ls = {},
 
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -727,6 +725,7 @@ require('lazy').setup({
 
       require('mason-lspconfig').setup {
         handlers = {
+          ensure_installed = { 'tsserver' },
           function(server_name)
             local server = servers[server_name] or {}
             -- This handles overriding only values explicitly passed
