@@ -211,18 +211,16 @@ end
 -- Function to check directories in order and return the valid one
 local function get_valid_vault_path(vault_type)
   -- Ensure the vault_type is either "personal" or "work"
-  if vault_type ~= 'personal' and vault_type ~= 'work' then
+  if vault_type ~= 'personal' and vault_type ~= 'work' and vault_type ~= 'brain' then
     error('Invalid vault type: ' .. vault_type .. ". Expected 'personal' or 'work'.")
   end
 
-  -- List of base directories to check (vault_type will be appended to these)
   local base_paths = {
     '/mnt/c/Users/p107t/vaults/',
     '/mnt/c/Users/pasca/vaults/',
     os.getenv 'HOME' .. '/vaults/',
   }
 
-  -- Keep checking each base path combined with the vault type (e.g. "personal" or "work")
   for _, base_path in ipairs(base_paths) do
     local full_path = base_path .. vault_type
     if dir_exists(full_path) then
@@ -236,6 +234,7 @@ local function get_valid_vault_path(vault_type)
     get_valid_vault_path(vault_type) -- Retry after a delay
   end, 1000) -- Delay of 1000ms (1 second)
 end
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -286,6 +285,9 @@ require('lazy').setup({
           name = 'work',
           path = get_valid_vault_path 'work',
         },
+        {
+          name = 'brain',
+          path = get_valid_vault_path 'brain',
       },
     },
   },
