@@ -274,7 +274,7 @@ require('lazy').setup({
         vim.ui.open(url)
       end,
       templates = {
-        folder = 'templates',
+        folder = 'Resources/templates',
       },
       workspaces = {
         {
@@ -288,7 +288,7 @@ require('lazy').setup({
         {
           name = 'brain',
           path = get_valid_vault_path 'brain',
-        }
+        },
       },
     },
   },
