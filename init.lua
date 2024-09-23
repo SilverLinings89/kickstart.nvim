@@ -288,6 +288,7 @@ require('lazy').setup({
         {
           name = 'brain',
           path = get_valid_vault_path 'brain',
+        }
       },
     },
   },
