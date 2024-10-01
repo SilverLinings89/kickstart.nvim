@@ -288,7 +288,8 @@ require('lazy').setup({
       },
     },
   },
-
+  'tpope/vim-fugitive',
+  'tpope/vim-rhubarb',
   'oflisback/obsidian-bridge.nvim',
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -307,18 +308,18 @@ require('lazy').setup({
   --    require('gitsigns').setup({ ... })
   --
   -- See `:help gitsigns` to understand what the configuration keys do
-  { -- Adds git related signs to the gutter, as well as utilities for managing changes
-    'lewis6991/gitsigns.nvim',
-    opts = {
-      signs = {
-        add = { text = '+' },
-        change = { text = '~' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
-        changedelete = { text = '~' },
-      },
-    },
-  },
+  -- { -- Adds git related signs to the gutter, as well as utilities for managing changes
+  --  'lewis6991/gitsigns.nvim',
+  --  opts = {
+  --  signs = {
+  --    add = { text = '+' },
+  --    change = { text = '~' },
+  --    delete = { text = '_' },
+  --    topdelete = { text = '‾' },
+  --    changedelete = { text = '~' },
+  --  },
+  -- },
+  -- },
 
   {
     'ThePrimeagen/vim-be-good',
