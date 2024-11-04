@@ -278,17 +278,13 @@ require('lazy').setup({
       },
       workspaces = {
         {
-          name = 'personal',
-          path = get_valid_vault_path 'personal',
-        },
-        {
-          name = 'work',
-          path = get_valid_vault_path 'work',
-        },
-        {
           name = 'brain',
           path = get_valid_vault_path 'brain',
         },
+      },
+      daily_notes = {
+        folder = 'Resources/daily notes',
+        templates = 'day.md',
       },
     },
   },
